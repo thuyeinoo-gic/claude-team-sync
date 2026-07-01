@@ -1,0 +1,5 @@
+.claude/changes.json
+.claude/seen_changes.json
+.venv/
+__pycache__/
+*.pyc
