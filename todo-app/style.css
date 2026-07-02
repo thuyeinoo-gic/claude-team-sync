@@ -1,9 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --blue:       #2563eb;
-  --blue-light: #eff6ff;
-  --blue-hover: #1d4ed8;
+  --blue:       #006400;
+  --blue-light: #e6f0e6;
+  --blue-hover: #004d00;
   --red:        #ef4444;
   --red-hover:  #dc2626;
   --white:      #ffffff;
@@ -175,7 +175,7 @@ header h1 {
   background: var(--blue-light);
   color: var(--blue);
 }
-.btn-edit:hover { background: #dbeafe; }
+.btn-edit:hover { background: #cce3cc; }
 
 .btn-delete {
   background: #fee2e2;
