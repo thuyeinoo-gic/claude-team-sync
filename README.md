@@ -1,52 +1,53 @@
 # Claude Team Sync
 
-Developer 2 ယောက် Git နဲ့ collaborate လုပ်သောအခါ teammate ရဲ့ Claude Code changes တွေကို
-`git pull` ပြီးတာနဲ့ Claude Code က **ဘယ်သူ၊ ဘယ်ချိန်၊ ဘာပြောင်းသွားလဲ** အလိုအလျောက် အသိပေးတဲ့ MCP server။
+An MCP server that automatically notifies developers about Claude Code changes
+(Skills, CLAUDE.md, settings) made by teammates after `git pull` — including
+who changed it, when, and why it matters.
 
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) — Python package manager
-- Git user config ထားရှိရမည်:
+- Git user config must be set:
 
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
-## Setup (Developer တစ်ယောက်ချင်းစီ လုပ်ရ)
+## Setup (each developer runs once)
 
 ```bash
-# 1. repo clone
+# 1. Clone the repo
 git clone <repo-url>
 cd claude-team-sync
 
-# 2. uv install (မရှိသေးရင်)
+# 2. Install uv (if not already installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 
-# 3. dependencies install
+# 3. Install dependencies
 uv sync --project mcp-server
 
-# 4. git hook install (one-time)
+# 4. Install git hook
 bash scripts/install-hook.sh
 ```
 
 ## Usage
 
 ```bash
-# Dev A: .claude/ ထဲ change တွေ push
+# Dev A: push .claude/ changes
 git add .claude/
 git commit -m "add security-review skill"
 git push
 
-# Dev B: pull ဆွဲ → hook auto-run → changes.json update
+# Dev B: pull → hook runs automatically → changes.json updated
 git pull
 
-# Dev B: Claude Code ဖွင့် → အလိုအလျောက် inform
+# Dev B: open Claude Code → notified automatically
 claude
 ```
 
-Claude Code session start မှာ ဒီလို ပြမည်:
+Claude Code will show at session start:
 
 ```
 ## New Claude Code changes from your teammate:
@@ -67,22 +68,22 @@ claude-team-sync/
 │   ├── server.py          ← MCP Resource + Tool
 │   └── pyproject.toml
 ├── scripts/
-│   ├── detect_changes.py  ← git hook ကနေ ခေါ်
+│   ├── detect_changes.py  ← called by git hook
 │   └── install-hook.sh    ← one-time setup
 └── .gitignore             ← changes.json, seen_changes.json excluded
 ```
 
 ## How It Works
 
-1. `git pull` → `post-merge` hook → `detect_changes.py` run
-2. `.claude/` ထဲ ဘာပြောင်းလဲ + ဘယ်သူ + ဘယ်ချိန် → `changes.json` မှာ save
-3. MCP server က `claude://team-changes` resource အဖြစ် expose
-4. Claude Code session start မှာ CLAUDE.md instruction အရ resource check
-5. Unseen changes ရှိရင် developer ကို inform → `acknowledge_changes` tool call → နောက် session မှာ မထပ်ပြတော့
+1. `git pull` → `post-merge` hook → `detect_changes.py` runs
+2. Detects what changed in `.claude/` + who + when → saved to `changes.json`
+3. MCP server exposes `claude://team-changes` resource
+4. Claude Code reads CLAUDE.md at session start → checks the resource
+5. If unseen changes exist → informs developer → calls `acknowledge_changes` → not shown again
 
 ## Local-only Files (.gitignored)
 
-| File | ရှင်းလင်းချက် |
+| File | Description |
 |---|---|
-| `.claude/changes.json` | `git pull` ပြီးတိုင်း hook က ဆောက်ပေး |
-| `.claude/seen_changes.json` | developer တစ်ဦးချင်း seen state |
+| `.claude/changes.json` | created by hook after every `git pull` |
+| `.claude/seen_changes.json` | per-developer seen state |
