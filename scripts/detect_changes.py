@@ -1,13 +1,14 @@
 """
 Run by the post-merge git hook.
-Reads changed .claude/ files from stdin and writes changes.json.
+Detects changed files in tracked directories and writes changes.json.
 """
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 CHANGES_FILE = Path(__file__).parent.parent / ".claude" / "changes.json"
+
+TRACKED_DIRS = [".claude/", "todo-app/"]
 
 STATUS_LABELS = {"A": "added", "M": "modified", "D": "deleted"}
 
@@ -34,9 +35,9 @@ def get_commit_info(filepath: str) -> dict:
     }
 
 
-def get_changed_claude_files() -> list[dict]:
+def get_changed_files() -> list[dict]:
     result = subprocess.run(
-        ["git", "diff", "ORIG_HEAD", "HEAD", "--name-status", "--", ".claude/"],
+        ["git", "diff", "ORIG_HEAD", "HEAD", "--name-status", "--"] + TRACKED_DIRS,
         capture_output=True,
         text=True,
     )
@@ -62,9 +63,9 @@ def get_changed_claude_files() -> list[dict]:
 
 
 def main():
-    changed = get_changed_claude_files()
+    changed = get_changed_files()
     if not changed:
-        print("No .claude/ changes detected.")
+        print("No changes detected in tracked directories.")
         return
 
     existing = {}
@@ -82,7 +83,7 @@ def main():
 
     CHANGES_FILE.parent.mkdir(parents=True, exist_ok=True)
     CHANGES_FILE.write_text(json.dumps(existing, indent=2, ensure_ascii=False))
-    print(f"Recorded {len(changed)} Claude Code change(s) → .claude/changes.json")
+    print(f"Recorded {len(changed)} change(s) → .claude/changes.json")
 
 
 if __name__ == "__main__":
