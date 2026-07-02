@@ -33,7 +33,12 @@ def get_team_changes() -> str:
 
     lines = ["## New Claude Code changes from your teammate:\n"]
     for filename, detail in unseen.items():
-        lines.append(f"- **{detail['status']}** `{filename}`")
+        author = detail.get("author", "unknown")
+        timestamp = detail.get("timestamp", "")
+        commit = detail.get("commit", "")
+        lines.append(f"- **{detail['status']}** `{filename}` — {author} ({timestamp})")
+        if commit:
+            lines.append(f"  commit: {commit}")
         if detail.get("summary"):
             lines.append(f"  → {detail['summary']}")
 

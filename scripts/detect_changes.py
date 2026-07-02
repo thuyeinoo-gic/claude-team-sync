@@ -17,6 +17,23 @@ SUMMARIES = {
 }
 
 
+def get_commit_info(filepath: str) -> dict:
+    result = subprocess.run(
+        ["git", "log", "ORIG_HEAD..HEAD", "--format=%an|%ai|%s", "--", filepath],
+        capture_output=True,
+        text=True,
+    )
+    line = result.stdout.strip().splitlines()
+    if not line:
+        return {"author": "unknown", "timestamp": "", "commit": ""}
+    parts = line[0].split("|", 2)
+    return {
+        "author": parts[0] if len(parts) > 0 else "unknown",
+        "timestamp": parts[1][:16] if len(parts) > 1 else "",
+        "commit": parts[2] if len(parts) > 2 else "",
+    }
+
+
 def get_changed_claude_files() -> list[dict]:
     result = subprocess.run(
         ["git", "diff", "ORIG_HEAD", "HEAD", "--name-status", "--", ".claude/"],
@@ -32,10 +49,14 @@ def get_changed_claude_files() -> list[dict]:
             status_code, filepath = parts
             label = STATUS_LABELS.get(status_code[0], "changed")
             filename = Path(filepath).name
+            info = get_commit_info(filepath)
             files.append({
                 "path": filepath,
                 "status": label,
                 "summary": SUMMARIES.get(filename, ""),
+                "author": info["author"],
+                "timestamp": info["timestamp"],
+                "commit": info["commit"],
             })
     return files
 
@@ -54,6 +75,9 @@ def main():
         existing[item["path"]] = {
             "status": item["status"],
             "summary": item["summary"],
+            "author": item["author"],
+            "timestamp": item["timestamp"],
+            "commit": item["commit"],
         }
 
     CHANGES_FILE.parent.mkdir(parents=True, exist_ok=True)

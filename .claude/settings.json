@@ -2,7 +2,8 @@
   "mcpServers": {
     "claude-team-sync": {
       "command": "uv",
-      "args": ["run", "--project", "mcp-server", "python", "mcp-server/server.py"]
+      "args": ["run", "--project", "mcp-server", "python", "mcp-server/server.py"],
+      "env": {}
     }
   }
 }
