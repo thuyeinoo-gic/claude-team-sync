@@ -2,6 +2,7 @@ const STORAGE_KEY = 'todos';
 
 let todos = load();
 let filter = 'all';
+let search = '';
 let editingId = null;
 
 // ── Storage ──────────────────────────────────────────────
@@ -14,16 +15,21 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
-// ── CRUD ─────────────────────────────────────────────────
+// ── CRUD ──────────────────────────────────────────────────
 function addTodo(title) {
-  todos.push({ id: Date.now(), title: title.trim(), completed: false });
+  todos.unshift({
+    id: Date.now(),
+    title: title.trim(),
+    completed: false,
+    createdAt: new Date().toISOString(),
+  });
   save();
   render();
 }
 
 function toggleTodo(id) {
-  const todo = todos.find(t => t.id === id);
-  if (todo) { todo.completed = !todo.completed; save(); render(); }
+  const t = todos.find(t => t.id === id);
+  if (t) { t.completed = !t.completed; save(); render(); }
 }
 
 function deleteTodo(id) {
@@ -33,8 +39,8 @@ function deleteTodo(id) {
 }
 
 function updateTodo(id, title) {
-  const todo = todos.find(t => t.id === id);
-  if (todo && title.trim()) { todo.title = title.trim(); save(); render(); }
+  const t = todos.find(t => t.id === id);
+  if (t && title.trim()) { t.title = title.trim(); save(); render(); }
 }
 
 function clearCompleted() {
@@ -43,44 +49,10 @@ function clearCompleted() {
   render();
 }
 
-// ── Render ────────────────────────────────────────────────
-function filtered() {
-  if (filter === 'active')    return todos.filter(t => !t.completed);
-  if (filter === 'completed') return todos.filter(t => t.completed);
-  return todos;
-}
-
-function render() {
-  const list = document.getElementById('todo-list');
-  list.innerHTML = '';
-
-  filtered().forEach(todo => {
-    const li = document.createElement('li');
-    li.className = 'todo-item' + (todo.completed ? ' completed' : '');
-
-    li.innerHTML = `
-      <input type="checkbox" ${todo.completed ? 'checked' : ''} />
-      <span class="title">${escapeHtml(todo.title)}</span>
-      <div class="actions">
-        <button class="btn-edit">Edit</button>
-        <button class="btn-delete">Delete</button>
-      </div>
-    `;
-
-    li.querySelector('input').addEventListener('change', () => toggleTodo(todo.id));
-    li.querySelector('.btn-edit').addEventListener('click', () => openModal(todo.id));
-    li.querySelector('.btn-delete').addEventListener('click', () => deleteTodo(todo.id));
-
-    list.appendChild(li);
-  });
-
-  const active = todos.filter(t => !t.completed).length;
-  const footer = document.getElementById('footer');
-  const hasTodos = todos.length > 0;
-
-  footer.classList.toggle('hidden', !hasTodos);
-  document.getElementById('count').textContent =
-    `${active} item${active !== 1 ? 's' : ''} left`;
+// ── Helpers ───────────────────────────────────────────────
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 }
 
 function escapeHtml(str) {
@@ -88,13 +60,81 @@ function escapeHtml(str) {
             .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function filtered() {
+  return todos.filter(t => {
+    const matchFilter =
+      filter === 'all' ||
+      (filter === 'active'    && !t.completed) ||
+      (filter === 'completed' && t.completed);
+    const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+}
+
+// ── Render ────────────────────────────────────────────────
+function render() {
+  const rows = filtered();
+  const tbody = document.getElementById('todo-tbody');
+  const empty = document.getElementById('empty-state');
+  const table = document.getElementById('data-table');
+
+  tbody.innerHTML = '';
+
+  if (rows.length === 0) {
+    table.classList.add('hidden');
+    empty.classList.remove('hidden');
+  } else {
+    table.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    rows.forEach((todo, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" ${todo.completed ? 'checked' : ''} /></td>
+        <td class="row-no">${i + 1}</td>
+        <td><span class="task-title ${todo.completed ? 'done' : ''}">${escapeHtml(todo.title)}</span></td>
+        <td>
+          <span class="badge ${todo.completed ? 'badge-completed' : 'badge-active'}">
+            ${todo.completed ? 'Completed' : 'Active'}
+          </span>
+        </td>
+        <td>${todo.createdAt ? formatDate(todo.createdAt) : '—'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-delete">Delete</button>
+          </div>
+        </td>
+      `;
+
+      tr.querySelector('input[type="checkbox"]').addEventListener('change', () => toggleTodo(todo.id));
+      tr.querySelector('.btn-edit').addEventListener('click', () => openModal(todo.id));
+      tr.querySelector('.btn-delete').addEventListener('click', () => deleteTodo(todo.id));
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Stats
+  const total     = todos.length;
+  const active    = todos.filter(t => !t.completed).length;
+  const completed = todos.filter(t => t.completed).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-done').textContent = completed;
+  document.getElementById('row-count').textContent =
+    rows.length ? `Showing ${rows.length} of ${total} task${total !== 1 ? 's' : ''}` : '';
+}
+
 // ── Modal ─────────────────────────────────────────────────
-function openModal(id) {
+function openModal(id = null) {
   editingId = id;
-  const todo = todos.find(t => t.id === id);
-  document.getElementById('edit-input').value = todo.title;
+  const isEdit = id !== null;
+  document.getElementById('modal-title').textContent = isEdit ? 'Edit Task' : 'New Task';
+  document.getElementById('modal-input').value = isEdit ? todos.find(t => t.id === id).title : '';
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('edit-input').focus();
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
 }
 
 function closeModal() {
@@ -103,19 +143,30 @@ function closeModal() {
 }
 
 function saveModal() {
-  const val = document.getElementById('edit-input').value;
-  if (val.trim()) { updateTodo(editingId, val); }
+  const val = document.getElementById('modal-input').value.trim();
+  if (!val) return;
+  if (editingId !== null) {
+    updateTodo(editingId, val);
+  } else {
+    addTodo(val);
+  }
   closeModal();
 }
 
 // ── Events ────────────────────────────────────────────────
-document.getElementById('add-btn').addEventListener('click', () => {
-  const input = document.getElementById('todo-input');
-  if (input.value.trim()) { addTodo(input.value); input.value = ''; input.focus(); }
+document.getElementById('add-btn').addEventListener('click', () => openModal());
+document.getElementById('clear-btn').addEventListener('click', clearCompleted);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-save').addEventListener('click', saveModal);
+
+document.getElementById('modal-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter')  saveModal();
+  if (e.key === 'Escape') closeModal();
 });
 
-document.getElementById('todo-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('add-btn').click();
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -127,17 +178,9 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-document.getElementById('clear-btn').addEventListener('click', clearCompleted);
-document.getElementById('modal-cancel').addEventListener('click', closeModal);
-document.getElementById('modal-save').addEventListener('click', saveModal);
-
-document.getElementById('edit-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') saveModal();
-  if (e.key === 'Escape') closeModal();
-});
-
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
+document.getElementById('search-input').addEventListener('input', e => {
+  search = e.target.value;
+  render();
 });
 
 // ── Init ──────────────────────────────────────────────────
