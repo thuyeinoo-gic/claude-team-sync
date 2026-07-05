@@ -1,10 +1,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --blue:        #1e40af;
-  --blue-mid:    #2563eb;
-  --blue-light:  #eff6ff;
-  --blue-border: #bfdbfe;
+  --blue:        #14532d;
+  --blue-mid:    #15803d;
+  --blue-light:  #f0fdf4;
+  --blue-border: #bbf7d0;
   --red:         #dc2626;
   --red-light:   #fee2e2;
   --white:       #ffffff;
@@ -225,7 +225,7 @@ body {
   transition: background 0.15s;
 }
 .btn-edit   { border-color: var(--blue-border); color: var(--blue-mid); background: var(--blue-light); }
-.btn-edit:hover { background: #dbeafe; }
+.btn-edit:hover { background: #dcfce7; }
 .btn-delete { border-color: #fca5a5; color: var(--red); background: var(--red-light); }
 .btn-delete:hover { background: #fecaca; }
 
@@ -303,7 +303,7 @@ body {
   padding: 9px 12px; font-size: 0.9rem; outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-input:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-input:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(21,128,61,0.1); }
 
 .modal-footer {
   display: flex; justify-content: flex-end; gap: 10px;
