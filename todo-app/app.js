@@ -125,6 +125,54 @@ function render() {
   document.getElementById('stat-done').textContent = completed;
   document.getElementById('row-count').textContent =
     rows.length ? `Showing ${rows.length} of ${total} task${total !== 1 ? 's' : ''}` : '';
+
+  renderDashboard();
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+function renderDashboard() {
+  const total     = todos.length;
+  const active    = todos.filter(t => !t.completed).length;
+  const completed = todos.filter(t => t.completed).length;
+  const pct       = total ? Math.round((completed / total) * 100) : 0;
+
+  document.getElementById('dash-stat-total').textContent = total;
+  document.getElementById('dash-stat-active').textContent = active;
+  document.getElementById('dash-stat-done').textContent = completed;
+  document.getElementById('dash-progress-fill').style.width = `${pct}%`;
+  document.getElementById('dash-progress-label').textContent = `${pct}% complete`;
+
+  const recent = todos.slice(0, 5);
+  const tbody = document.getElementById('dash-recent-tbody');
+  const empty = document.getElementById('dash-recent-empty');
+  tbody.innerHTML = '';
+
+  if (recent.length === 0) {
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    recent.forEach(todo => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="task-title ${todo.completed ? 'done' : ''}">${escapeHtml(todo.title)}</span></td>
+        <td>
+          <span class="badge ${todo.completed ? 'badge-completed' : 'badge-active'}">
+            ${todo.completed ? 'Completed' : 'Active'}
+          </span>
+        </td>
+        <td>${todo.createdAt ? formatDate(todo.createdAt) : '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function showPage(page) {
+  document.getElementById('page-tasks').classList.toggle('hidden', page !== 'tasks');
+  document.getElementById('page-dashboard').classList.toggle('hidden', page !== 'dashboard');
+  document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+    item.classList.toggle('active', item.dataset.page === page);
+  });
 }
 
 // ── Modal ─────────────────────────────────────────────────
@@ -181,6 +229,10 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 document.getElementById('search-input').addEventListener('input', e => {
   search = e.target.value;
   render();
+});
+
+document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => showPage(item.dataset.page));
 });
 
 // ── Init ──────────────────────────────────────────────────

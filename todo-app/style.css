@@ -123,6 +123,43 @@ body {
 
 .stat-label { font-size: 0.75rem; color: var(--gray-500); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
+/* ── Panels (Dashboard) ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.panel-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 14px;
+}
+
+.progress-track {
+  background: var(--gray-100);
+  border-radius: 20px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--blue-mid);
+  border-radius: 20px;
+  transition: width 0.3s;
+}
+
+.progress-label {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
 /* ── Toolbar ── */
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
 .toolbar-left { display: flex; align-items: center; gap: 12px; }

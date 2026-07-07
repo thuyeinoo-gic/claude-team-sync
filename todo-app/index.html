@@ -28,8 +28,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <ul class="sidebar-menu">
-        <li class="sidebar-item active">&#9741; &nbsp;Tasks</li>
-        <li class="sidebar-item">&#9737; &nbsp;Dashboard</li>
+        <li class="sidebar-item" data-page="dashboard">&#9737; &nbsp;Dashboard</li>
+        <li class="sidebar-item active" data-page="tasks">&#9741; &nbsp;Tasks</li>
         <li class="sidebar-item">&#9776; &nbsp;Reports</li>
         <li class="sidebar-item">&#9881; &nbsp;Settings</li>
       </ul>
@@ -38,68 +38,128 @@
     <!-- Main -->
     <main class="main">
 
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Task Manager</h1>
-          <p class="page-subtitle">Manage and track your team tasks</p>
-        </div>
-        <button class="btn-primary" id="add-btn">+ New Task</button>
-      </div>
+      <!-- Dashboard Page -->
+      <section id="page-dashboard" class="page hidden">
 
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-total">0</div>
-          <div class="stat-label">Total</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value blue" id="stat-active">0</div>
-          <div class="stat-label">Active</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value green" id="stat-done">0</div>
-          <div class="stat-label">Completed</div>
-        </div>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <input type="text" id="search-input" class="search-input" placeholder="Search tasks..." />
-          <div class="filter-group">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="active">Active</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Overview of your team's task activity</p>
           </div>
         </div>
-        <button class="btn-danger-ghost" id="clear-btn">Clear Completed</button>
-      </div>
 
-      <!-- Table -->
-      <div class="table-wrapper">
-        <table class="data-table" id="data-table">
-          <thead>
-            <tr>
-              <th class="col-cb"></th>
-              <th class="col-no">#</th>
-              <th>Task</th>
-              <th class="col-status">Status</th>
-              <th class="col-date">Created</th>
-              <th class="col-act">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="todo-tbody"></tbody>
-        </table>
-        <div id="empty-state" class="empty-state hidden">
-          <div class="empty-icon">&#9741;</div>
-          <p class="empty-title">No tasks found</p>
-          <p class="empty-sub">Click "+ New Task" to get started</p>
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-value" id="dash-stat-total">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value blue" id="dash-stat-active">0</div>
+            <div class="stat-label">Active</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value green" id="dash-stat-done">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
         </div>
-      </div>
 
-      <div class="table-footer">
-        <span id="row-count"></span>
-      </div>
+        <div class="panel">
+          <div class="panel-header">Completion Rate</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="dash-progress-fill"></div>
+          </div>
+          <div class="progress-label" id="dash-progress-label">0% complete</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">Recent Tasks</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th class="col-status">Status</th>
+                <th class="col-date">Created</th>
+              </tr>
+            </thead>
+            <tbody id="dash-recent-tbody"></tbody>
+          </table>
+          <div id="dash-recent-empty" class="empty-state hidden">
+            <div class="empty-icon">&#9737;</div>
+            <p class="empty-title">No tasks yet</p>
+            <p class="empty-sub">Recent tasks will show up here</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Tasks Page -->
+      <section id="page-tasks" class="page">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Task Manager</h1>
+            <p class="page-subtitle">Manage and track your team tasks</p>
+          </div>
+          <button class="btn-primary" id="add-btn">+ New Task</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value blue" id="stat-active">0</div>
+            <div class="stat-label">Active</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value green" id="stat-done">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <input type="text" id="search-input" class="search-input" placeholder="Search tasks..." />
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="active">Active</button>
+              <button class="filter-btn" data-filter="completed">Completed</button>
+            </div>
+          </div>
+          <button class="btn-danger-ghost" id="clear-btn">Clear Completed</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th class="col-cb"></th>
+                <th class="col-no">#</th>
+                <th>Task</th>
+                <th class="col-status">Status</th>
+                <th class="col-date">Created</th>
+                <th class="col-act">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="todo-tbody"></tbody>
+          </table>
+          <div id="empty-state" class="empty-state hidden">
+            <div class="empty-icon">&#9741;</div>
+            <p class="empty-title">No tasks found</p>
+            <p class="empty-sub">Click "+ New Task" to get started</p>
+          </div>
+        </div>
+
+        <div class="table-footer">
+          <span id="row-count"></span>
+        </div>
+
+      </section>
 
     </main>
   </div>
